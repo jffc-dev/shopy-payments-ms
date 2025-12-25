@@ -1,8 +1,33 @@
-import { IsPositive } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNumber,
+  IsPositive,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class CreatePaymentDto {
+export class PaymentSessionDto {
+  @IsString()
+  currency: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => PaymentSessionItemDto)
+  items: PaymentSessionItemDto[];
+}
+
+export class PaymentSessionItemDto {
+  @IsString()
+  name: string;
+
+  @IsNumber()
   @IsPositive()
-  @Type(() => Number)
-  page: number = 1;
+  price: number;
+
+  @IsNumber()
+  @IsPositive()
+  quantity: number;
 }

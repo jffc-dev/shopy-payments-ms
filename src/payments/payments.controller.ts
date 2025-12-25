@@ -1,17 +1,19 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
-import { CreatePaymentDto } from './dto/create-payment.dto';
+import { PaymentSessionDto } from './dto/create-payment.dto';
+import type { Request, Response } from 'express';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @Post()
-  createPayment(@Body() createPaymentDto: CreatePaymentDto) {
-    return 'data';
+  @Post('create-payment-session')
+  createPayment(@Body() createPaymentDto: PaymentSessionDto) {
+    return this.paymentsService.createPaymentSession(createPaymentDto);
   }
 
-  @Get()
+  @Get('success')
   getPayments() {
     return 'success';
   }
@@ -22,7 +24,7 @@ export class PaymentsController {
   }
 
   @Post('webhook')
-  stripeWebhook() {
-    return 'webhook';
+  stripeWebhook(@Req() req: RawBodyRequest<Request>, @Res() res: Response) {
+    return this.paymentsService.stripeWebhook(req, res);
   }
 }
