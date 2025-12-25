@@ -9,7 +9,7 @@ export class PaymentsService {
   private readonly stripe = new Stripe(envs.stripeSecret);
 
   async createPaymentSession(paymentSessionDto: PaymentSessionDto) {
-    const { currency, items } = paymentSessionDto;
+    const { currency, items, orderId } = paymentSessionDto;
     const lineItems = items.map((item) => {
       return {
         price_data: {
@@ -25,7 +25,9 @@ export class PaymentsService {
     const session = await this.stripe.checkout.sessions.create({
       // fill with the order id
       payment_intent_data: {
-        metadata: {},
+        metadata: {
+          orderId,
+        },
       },
       line_items: lineItems,
       mode: 'payment',
@@ -66,19 +68,21 @@ export class PaymentsService {
       return res.sendStatus(400);
     }
 
-    console.log(event);
-    // console.log('Webhook verified successfully:', event.type);
-    // // Handle different event types here
-    // switch (event.type) {
-    //   case 'charge.succeeded':
-    //     console.log('Payment succeeded:', event.data.object);
-    //     break;
-    //   case 'charge.failed':
-    //     console.log('Payment failed:', event.data.object);
-    //     break;
-    //   default:
-    //     console.log(`Unhandled event type ${event.type}`);
-    // }
+    console.log('Webhook verified successfully:', event.type);
+
+    switch (event.type) {
+      case 'charge.succeeded': {
+        const charge = event.data.object;
+        console.log({ metadata: charge.metadata });
+        console.log('Payment succeeded:', event.data.object);
+        break;
+      }
+      case 'charge.failed':
+        console.log('Payment failed:', event.data.object);
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
 
     return res.json({ received: true });
   }
